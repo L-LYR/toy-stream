@@ -47,7 +47,7 @@ func _NewTaskRunner(opts ...Option) *_TaskRunner {
 	return t
 }
 
-func (t *_TaskRunner) Do(fn TaskWrapper, source <-chan Item) Stream {
+func (t *_TaskRunner) Do(fn func(Item, chan<- Item), source <-chan Item) Stream {
 	go func() {
 		wg := &sync.WaitGroup{}
 		t.limiter <- struct{}{}

@@ -11,7 +11,7 @@ type _StreamImpl struct {
 	errs []error
 }
 
-func (s *_StreamImpl) Filter(p Predictor, opts ...Option) Stream {
+func (s *_StreamImpl) FilterBy(p func(Item) bool, opts ...Option) Stream {
 	return _NewTaskRunner(opts...).Do(
 		func(i Item, c chan<- Item) {
 			if p(i) {
@@ -20,11 +20,24 @@ func (s *_StreamImpl) Filter(p Predictor, opts ...Option) Stream {
 		}, s.source)
 }
 
-func (s *_StreamImpl) Map(t Transformer, opts ...Option) Stream {
+func (s *_StreamImpl) MapBy(t func(Item) Item, opts ...Option) Stream {
 	return _NewTaskRunner(opts...).Do(
 		func(i Item, c chan<- Item) {
 			c <- t(i)
 		}, s.source)
+}
+
+func (s *_StreamImpl) GroupBy(k func(Item) interface{}, opts ...Option) Stream {
+	groups := make(map[interface{}][]Item)
+	for item := range s.source {
+		key := k(item)
+		groups[key] = append(groups[key], item)
+	}
+	return GenerateBy(func(c chan<- Item) {
+		for _, group := range groups {
+			c <- ItemSlice(group)
+		}
+	})
 }
 
 func (s *_StreamImpl) First() Item {

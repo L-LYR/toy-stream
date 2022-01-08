@@ -1,8 +1,9 @@
 package stream
 
 type Stream interface {
-	Filter(Predictor, ...Option) Stream
-	Map(Transformer, ...Option) Stream
+	FilterBy(func(Item) bool, ...Option) Stream
+	MapBy(func(Item) Item, ...Option) Stream
+	GroupBy(func(Item) interface{}, ...Option) Stream
 	Sort() Stream
 
 	First() Item
@@ -38,7 +39,7 @@ func From(items []Item) Stream {
 	return Range(source)
 }
 
-func GenerateBy(generator Generator) Stream {
+func GenerateBy(generator func(chan<- Item)) Stream {
 	source := make(chan Item)
 	Go(func() {
 		generator(source)
