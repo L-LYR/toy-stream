@@ -118,3 +118,14 @@ func TestGroupBy(t *testing.T) {
 		result,
 	)
 }
+
+func TestDistinct(t *testing.T) {
+	as := assert.New(t)
+	result := Just(1, 5, 1, 2, 3, 4, 2, 3, 4, 5).Distinct().SortBy(
+		func(i1, i2 Item) bool { return i1.(int) < i2.(int) },
+	).Collect()
+	as.EqualValues(
+		ItemSlice{1, 2, 3, 4, 5},
+		result,
+	)
+}

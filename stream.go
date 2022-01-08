@@ -6,6 +6,7 @@ type Stream interface {
 	GroupBy(func(Item) interface{}, ...Option) Stream
 	SortBy(func(Item, Item) bool) Stream
 	Flatten() Stream
+	Distinct() Stream
 
 	First() Item
 	Last() Item

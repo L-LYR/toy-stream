@@ -55,6 +55,18 @@ func (s *_StreamImpl) Flatten() Stream {
 	})
 }
 
+func (s *_StreamImpl) Distinct() Stream {
+	return GenerateBy(func(c chan<- Item) {
+		filter := make(map[Item]struct{})
+		for item := range s.source {
+			if _, ok := filter[item]; !ok {
+				c <- item
+				filter[item] = struct{}{}
+			}
+		}
+	})
+}
+
 func (s *_StreamImpl) First() Item {
 	if len(s.source) == 0 {
 		return nil
