@@ -1,6 +1,7 @@
 package stream
 
 import (
+	"sort"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -38,30 +39,82 @@ func TestDone(t *testing.T) {
 	as.Nil(s.Result())
 }
 
-func TestFilter(t *testing.T) {
+func TestFilterBy(t *testing.T) {
 	as := assert.New(t)
 
 	s := Just(1, 2, 3, 4, 5, 6, 7, 8)
 	result := s.FilterBy(func(i Item) bool {
-		return i.(i64)%2 == 0
-	}).Sort().Collect()
-	for i, v := range []i64{2, 4, 6, 8} {
+		return i.(int)%2 == 0
+	}).SortBy(func(i1, i2 Item) bool {
+		return i1.(int) < i2.(int)
+	}).Collect()
+	for i, v := range []int{2, 4, 6, 8} {
 		as.EqualValues(v, result[i])
 	}
 	as.Nil(s.Result())
 	s.Done()
 }
 
-func TestMap(t *testing.T) {
+func TestMapBy(t *testing.T) {
 	as := assert.New(t)
 
 	s := Just(1, 2, 3, 4)
 	result := s.MapBy(func(i Item) Item {
-		return i.(i64) * 2
-	}).Sort().Collect()
-	for i, v := range []i64{2, 4, 6, 8} {
+		return i.(int) * 2
+	}).SortBy(func(i1, i2 Item) bool {
+		return i1.(int) < i2.(int)
+	}).Collect()
+	for i, v := range []int{2, 4, 6, 8} {
 		as.EqualValues(v, result[i])
 	}
 	as.Nil(s.Result())
 	s.Done()
+}
+
+func TestSortBy(t *testing.T) {
+	as := assert.New(t)
+
+	type Complex struct {
+		s string
+		i int
+		f float32
+	}
+	cs := []Complex{
+		{s: "a", i: 498, f: 1.02134},
+		{s: "asbdj", i: 1, f: 1.3240},
+		{s: "dssfjaj", i: 43645, f: 1435.0},
+		{s: "a", i: 9999, f: 1.0234},
+		{s: "kskdll", i: 5555, f: 1657.0},
+	}
+	result := GenerateBy(func(c chan<- Item) {
+		for _, s := range cs {
+			c <- s
+		}
+	}).SortBy(func(i1, i2 Item) bool {
+		return i1.(Complex).s < i2.(Complex).s
+	}).Collect()
+
+	sort.Slice(cs, func(i, j int) bool {
+		return cs[i].s < cs[j].s
+	})
+	for i, c := range result {
+		as.EqualValues(cs[i], c.(Complex))
+	}
+}
+
+func TestGroupBy(t *testing.T) {
+	as := assert.New(t)
+
+	result := Just(1, 2, 3, 4, 5, 6, 7, 8).GroupBy(func(i Item) interface{} {
+		return i.(int)%2 == 0
+	}).GroupBy(func(i Item) interface{} {
+		return len(i.(ItemSlice))
+	}).Flatten().Flatten().SortBy(func(i1, i2 Item) bool {
+		return i1.(int) < i2.(int)
+	}).Collect()
+
+	as.EqualValues(
+		ItemSlice{1, 2, 3, 4, 5, 6, 7, 8},
+		result,
+	)
 }

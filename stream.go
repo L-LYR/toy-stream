@@ -4,12 +4,13 @@ type Stream interface {
 	FilterBy(func(Item) bool, ...Option) Stream
 	MapBy(func(Item) Item, ...Option) Stream
 	GroupBy(func(Item) interface{}, ...Option) Stream
-	Sort() Stream
+	SortBy(func(Item, Item) bool) Stream
+	Flatten() Stream
 
 	First() Item
 	Last() Item
 
-	Collect() []Item
+	Collect() ItemSlice
 
 	Done() Stream
 	Result() []error
@@ -21,19 +22,10 @@ func Range(c <-chan Item) Stream {
 	return &_StreamImpl{source: c}
 }
 
-func Just(values ...interface{}) Stream {
+func Just(values ...Item) Stream {
 	source := make(chan Item, len(values))
 	for _, value := range values {
-		source <- Conv(value)
-	}
-	close(source)
-	return Range(source)
-}
-
-func From(items []Item) Stream {
-	source := make(chan Item, len(items))
-	for _, item := range items {
-		source <- item
+		source <- value
 	}
 	close(source)
 	return Range(source)

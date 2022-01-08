@@ -1,6 +1,7 @@
 package stream
 
 import (
+	"reflect"
 	"sort"
 )
 
@@ -40,6 +41,20 @@ func (s *_StreamImpl) GroupBy(k func(Item) interface{}, opts ...Option) Stream {
 	})
 }
 
+func (s *_StreamImpl) Flatten() Stream {
+	return GenerateBy(func(c chan<- Item) {
+		for item := range s.source {
+			if reflect.TypeOf(item) == reflect.TypeOf(ItemSlice{}) {
+				for _, innerItem := range item.(ItemSlice) {
+					c <- innerItem
+				}
+			} else {
+				c <- item
+			}
+		}
+	})
+}
+
 func (s *_StreamImpl) First() Item {
 	if len(s.source) == 0 {
 		return nil
@@ -57,16 +72,16 @@ func (s *_StreamImpl) Last() Item {
 	return s.fetch()
 }
 
-func (s *_StreamImpl) Sort() Stream {
+func (s *_StreamImpl) SortBy(cmp func(Item, Item) bool) Stream {
 	result := s.Collect()
 	sort.Slice(result, func(i, j int) bool {
-		return result[i].LessThan(result[j])
+		return cmp(result[i], result[j])
 	})
-	return From(result)
+	return Just(result...)
 }
 
-func (s *_StreamImpl) Collect() []Item {
-	result := make([]Item, 0, len(s.source))
+func (s *_StreamImpl) Collect() ItemSlice {
+	result := make(ItemSlice, 0, len(s.source))
 	for item := range s.source {
 		result = append(result, item)
 	}
