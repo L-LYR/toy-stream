@@ -2,7 +2,7 @@ package stream
 
 import "reflect"
 
-func From(value interface{}) Item {
+func Conv(value interface{}) Item {
 	if value == nil {
 		return nil
 	}

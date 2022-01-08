@@ -20,7 +20,7 @@ func Test_drain(t *testing.T) {
 
 		c3 := make(chan Item, 20000)
 		for i := 0; i < 1000; i++ {
-			c3 <- From(i)
+			c3 <- Conv(i)
 		}
 		close(c3)
 

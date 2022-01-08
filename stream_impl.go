@@ -1,5 +1,9 @@
 package stream
 
+import (
+	"sort"
+)
+
 type _StreamImpl struct {
 	// stream procedure base channel
 	source <-chan Item
@@ -33,9 +37,25 @@ func (s *_StreamImpl) Last() Item {
 	return s.fetch()
 }
 
+func (s *_StreamImpl) Sort() Stream {
+	result := s.Collect()
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].LessThan(result[j])
+	})
+	return From(result)
+}
+
+func (s *_StreamImpl) Collect() []Item {
+	result := make([]Item, 0, len(s.source))
+	for item := range s.source {
+		result = append(result, item)
+	}
+	return result
+}
+
 func (s *_StreamImpl) Done() Stream {
 	drain(s.source)
-	s.errs = make([]error, 0)
+	s.errs = nil
 	return s
 }
 

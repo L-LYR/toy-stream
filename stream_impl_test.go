@@ -35,5 +35,19 @@ func TestDone(t *testing.T) {
 
 	s = s.Done()
 	as.EqualValues(0, len(s.(*_StreamImpl).source))
-	as.EqualValues([]error{}, s.Result())
+	as.Nil(s.Result())
+}
+
+func TestFilter(t *testing.T) {
+	as := assert.New(t)
+
+	s := Just(1, 2, 3, 4, 5, 6, 7, 8)
+	result := s.Filter(func(i Item) bool {
+		return i.(i64)%2 == 0
+	}).Sort().Collect()
+	for i, v := range []i64{2, 4, 6, 8} {
+		as.EqualValues(v, result[i])
+	}
+	as.Nil(s.Result())
+	s.Done()
 }

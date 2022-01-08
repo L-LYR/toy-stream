@@ -31,14 +31,14 @@ func WithWorkerNum(n int) Option {
 type _TaskRunner struct {
 	result  chan Item
 	limiter chan struct{}
-	*_TaskConfig
+	_TaskConfig
 }
 
 func _NewTaskRunner(opts ...Option) *_TaskRunner {
 	t := &_TaskRunner{}
 	for _, opt := range opts {
 		if opt != nil {
-			opt(t._TaskConfig)
+			opt(&t._TaskConfig)
 		}
 	}
 	t.check()
@@ -52,6 +52,7 @@ func (t *_TaskRunner) Do(fn TaskWrapper, source <-chan Item) Stream {
 		wg := &sync.WaitGroup{}
 		t.limiter <- struct{}{}
 		for item := range source {
+			item := item // awful!
 			wg.Add(1)
 			Go(func() {
 				fn(item, t.result)

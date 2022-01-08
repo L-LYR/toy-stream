@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func Test_from(t *testing.T) {
+func Test_Conv(t *testing.T) {
 	tests := []struct {
 		name string
 		arg  interface{}
@@ -16,7 +16,7 @@ func Test_from(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := From(tt.arg); !reflect.DeepEqual(got, tt.want) {
+			if got := Conv(tt.arg); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("from() = %v, want %v", got, tt.want)
 			}
 		})

@@ -9,7 +9,7 @@ type Order interface {
 	LessThan(Order) bool
 }
 
-var _ Order = i64(0)
-var _ Order = u64(0)
-var _ Order = f64(0)
-var _ Order = str("")
+var _ Item = i64(0)
+var _ Item = u64(0)
+var _ Item = f64(0)
+var _ Item = str("")

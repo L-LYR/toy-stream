@@ -1,11 +1,13 @@
 package stream
 
 type Stream interface {
-	
 	Filter(Predictor) Stream
+	Sort() Stream
 
 	First() Item
 	Last() Item
+
+	Collect() []Item
 
 	Done() Stream
 	Result() []error
@@ -20,7 +22,16 @@ func Range(c <-chan Item) Stream {
 func Just(values ...interface{}) Stream {
 	source := make(chan Item, len(values))
 	for _, value := range values {
-		source <- From(value)
+		source <- Conv(value)
+	}
+	close(source)
+	return Range(source)
+}
+
+func From(items []Item) Stream {
+	source := make(chan Item, len(items))
+	for _, item := range items {
+		source <- item
 	}
 	close(source)
 	return Range(source)
