@@ -11,12 +11,19 @@ type _StreamImpl struct {
 	errs []error
 }
 
-func (s *_StreamImpl) Filter(p Predictor) Stream {
-	return _NewTaskRunner().Do(
+func (s *_StreamImpl) Filter(p Predictor, opts ...Option) Stream {
+	return _NewTaskRunner(opts...).Do(
 		func(i Item, c chan<- Item) {
 			if p(i) {
 				c <- i
 			}
+		}, s.source)
+}
+
+func (s *_StreamImpl) Map(t Transformer, opts ...Option) Stream {
+	return _NewTaskRunner(opts...).Do(
+		func(i Item, c chan<- Item) {
+			c <- t(i)
 		}, s.source)
 }
 

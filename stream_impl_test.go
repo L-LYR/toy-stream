@@ -51,3 +51,17 @@ func TestFilter(t *testing.T) {
 	as.Nil(s.Result())
 	s.Done()
 }
+
+func TestMap(t *testing.T) {
+	as := assert.New(t)
+
+	s := Just(1, 2, 3, 4)
+	result := s.Map(func(i Item) Item {
+		return i.(i64) * 2
+	}).Sort().Collect()
+	for i, v := range []i64{2, 4, 6, 8} {
+		as.EqualValues(v, result[i])
+	}
+	as.Nil(s.Result())
+	s.Done()
+}

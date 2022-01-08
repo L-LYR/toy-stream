@@ -1,7 +1,8 @@
 package stream
 
 type Stream interface {
-	Filter(Predictor) Stream
+	Filter(Predictor, ...Option) Stream
+	Map(Transformer, ...Option) Stream
 	Sort() Stream
 
 	First() Item
