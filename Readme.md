@@ -1,3 +1,5 @@
 # stream
 
-> try to use goroutines to construct a concurrent stream liberary
+use goroutines to construct a concurrent stream liberary, just a toy.
+
+TODO: Refactor with go generics.
