@@ -105,18 +105,15 @@ func TestSortBy(t *testing.T) {
 func TestGroupBy(t *testing.T) {
 	as := assert.New(t)
 
-	result := Just(1, 2, 3, 4, 5, 6, 7, 8).GroupBy(func(i Item) interface{} {
+	result := Just(1, 2, 3, 4, 5, 6, 7, 8).GroupBy(func(i Item) Item {
 		return i.(int)%2 == 0
-	}).GroupBy(func(i Item) interface{} {
+	}).GroupBy(func(i Item) Item {
 		return len(i.(ItemSlice))
 	}).Flatten().Flatten().SortBy(func(i1, i2 Item) bool {
 		return i1.(int) < i2.(int)
 	}).Collect()
 
-	as.EqualValues(
-		ItemSlice{1, 2, 3, 4, 5, 6, 7, 8},
-		result,
-	)
+	as.EqualValues(ItemSlice{1, 2, 3, 4, 5, 6, 7, 8}, result)
 }
 
 func TestDistinct(t *testing.T) {
@@ -124,8 +121,39 @@ func TestDistinct(t *testing.T) {
 	result := Just(1, 5, 1, 2, 3, 4, 2, 3, 4, 5).Distinct().SortBy(
 		func(i1, i2 Item) bool { return i1.(int) < i2.(int) },
 	).Collect()
-	as.EqualValues(
-		ItemSlice{1, 2, 3, 4, 5},
-		result,
-	)
+	as.EqualValues(ItemSlice{1, 2, 3, 4, 5}, result)
+}
+
+func TestHead(t *testing.T) {
+	as := assert.New(t)
+	result := Just(1, 2, 3, 4).Head(10).Collect()
+	as.EqualValues(ItemSlice{1, 2, 3, 4}, result)
+	result = Just(1, 2, 3, 4, 5, 6, 7).Head(4).Collect()
+	as.EqualValues(ItemSlice{1, 2, 3, 4}, result)
+}
+
+func TestTail(t *testing.T) {
+	as := assert.New(t)
+	result := Just(1, 2, 3, 4).Tail(10).Collect()
+	as.EqualValues(ItemSlice{1, 2, 3, 4}, result)
+	result = Just(1, 2, 3, 4, 5, 6, 7, 8, 9).Tail(4).Collect()
+	as.EqualValues(ItemSlice{6, 7, 8, 9}, result)
+}
+
+func TestReverse(t *testing.T) {
+	as := assert.New(t)
+	result := Just(1, 2, 3, 4).Reverse().Collect()
+	as.EqualValues(ItemSlice{4, 3, 2, 1}, result)
+}
+
+func TestAll(t *testing.T) {
+	as := assert.New(t)
+	isOdd := func(i Item) bool { return i.(int)%2 == 1 }
+	as.True(Just(1, 3, 5, 7).All(isOdd))
+}
+
+func TestAny(t *testing.T) {
+	as := assert.New(t)
+	isEven := func(i Item) bool { return i.(int)%2 == 0 }
+	as.True(Just(1, 2, 3, 5, 7).Any(isEven))
 }

@@ -3,7 +3,7 @@ package stream
 import "sync"
 
 const (
-	DEFAULT_WORKER_NUM = 16
+	DEFAULT_WORKER_NUM = 4
 )
 
 type _TaskConfig struct {
@@ -47,15 +47,34 @@ func _NewTaskRunner(opts ...Option) *_TaskRunner {
 	return t
 }
 
-func (t *_TaskRunner) Do(fn func(Item, chan<- Item), source <-chan Item) Stream {
+func (t *_TaskRunner) Apply(fn func(Item, chan<- Item), source <-chan Item) Stream {
 	go func() {
 		wg := &sync.WaitGroup{}
 		t.limiter <- struct{}{}
 		for item := range source {
 			item := item // awful!
 			wg.Add(1)
-			Go(func() {
+			GoWithRecover(func() {
 				fn(item, t.result)
+				wg.Done()
+				<-t.limiter
+			})
+		}
+		wg.Wait()
+		close(t.result)
+	}()
+	return Range(t.result)
+}
+
+func (t *_TaskRunner) Invoke(fns ...func(chan<- Item)) Stream {
+	go func() {
+		wg := &sync.WaitGroup{}
+		t.limiter <- struct{}{}
+		for _, fn := range fns {
+			fn := fn
+			wg.Add(1)
+			GoWithRecover(func() {
+				fn(t.result)
 				wg.Done()
 				<-t.limiter
 			})

@@ -30,3 +30,20 @@ func TestGenerateBy(t *testing.T) {
 		as.Equal(s.(*_StreamImpl).fetch(), item)
 	}
 }
+
+func TestConcat(t *testing.T) {
+	as := assert.New(t)
+
+	source1 := Just(1, 2, 3, 4, 5, 6)
+	source2 := Just(7, 8, 9, 10)
+	source3 := Just(11, 12, 13, 14)
+
+	result := Concat(source3, source1, source2).SortBy(
+		func(i1, i2 Item) bool { return i1.(int) < i2.(int) },
+	).Collect()
+
+	as.EqualValues(
+		ItemSlice{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14},
+		result,
+	)
+}

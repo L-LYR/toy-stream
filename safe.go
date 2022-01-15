@@ -13,11 +13,11 @@ func Recover(cleanups ...Task) {
 	}
 }
 
-func Run(fn Task) {
+func RunWithRecover(fn Task) {
 	fn()
 	Recover()
 }
 
-func Go(fn Task) {
-	go Run(fn)
+func GoWithRecover(fn Task) {
+	go RunWithRecover(fn)
 }
